@@ -1,9 +1,16 @@
 data "aws_availability_zones" "available" {}
 
-variable "ubuntu_ami" {
-  type = "string"
-  description = "ami id for ubuntu 18-04-server"
-  default = "ami-08d658f84a6d84a80"
+data "aws_ami" "amazon-linux-2" {
+ most_recent = true
+ owners = ["amazon"]
+ filter {
+   name   = "name"
+   values = ["amzn2-ami-hvm*x86_64-ebs"]
+ }
+ filter {
+  name = "architecture"
+  values = ["x86_64"]
+ }
 }
 
 variable "instance_type" {
@@ -44,4 +51,9 @@ variable "master_count" {
 variable "worker_count" {
   type = "string"
   default = 5
+}
+
+variable "kubeadm_token" {
+  type = "string"
+  default = ""
 }
