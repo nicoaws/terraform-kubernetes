@@ -1,6 +1,6 @@
 data "aws_availability_zones" "available" {}
 
-data "aws_ami" "amazon-linux-2" {
+data "aws_ami" "amazon_linux_2" {
  most_recent = true
  owners = ["amazon"]
  filter {
@@ -23,12 +23,12 @@ variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
 
-variable "terrakube-public-subnet-range" {
+variable "terrakube_public_subnet_range" {
   type = "string"
   default = "10.0.0.0/23"
 }
 
-variable "terrakube-private-subnet-range" {
+variable "terrakube_private-subnet-range" {
   type = "string"
   default = "10.0.128.0/23"
 }

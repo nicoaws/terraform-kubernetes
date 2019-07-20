@@ -1,0 +1,21 @@
+cat > ../ca-config/${HOSTNAME}-csr.json << EOF
+{
+  "CN": "system:node:${HOSTNAME}",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "GB",
+      "L": "Portland",
+      "O": "system:nodes",
+      "OU": "Kubernetes The Hard Way",
+      "ST": "Oregon"
+    }
+  ]
+}
+EOF
+
+
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=../ca-config/ca-config.json -hostname=${HOSTNAME},${EXTERNAL_IP},${INTERNAL_IP} -profile=kubernetes ../ca-config/${HOSTNAME}-csr.json | cfssljson -bare ${HOSTNAME}
