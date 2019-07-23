@@ -22,7 +22,17 @@ resource "aws_security_group_rule" "allow_masters_all_from_self" {
   self = true
   security_group_id = aws_security_group.terrakube_masters.id
 }
- 
+
+resource "aws_security_group_rule" "allow_masters_out_all_tcp" {
+  type = "egress"
+  from_port = 0
+  to_port = 65535
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
+  security_group_id = aws_security_group.terrakube_masters.id
+}
+
 resource "aws_security_group_rule" "allow_masters_6443_from_everywhere" {
   type = "ingress"
   from_port = 6443
@@ -77,5 +87,15 @@ resource "aws_security_group_rule" "allow_workers_all_from_masters" {
   to_port = 0
   protocol = -1
   source_security_group_id =  aws_security_group.terrakube_masters.id
+  security_group_id = aws_security_group.terrakube_workers.id
+}
+
+resource "aws_security_group_rule" "allow_workers_out_all_tcp" {
+  type = "egress"
+  from_port = 0
+  to_port = 65535
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
   security_group_id = aws_security_group.terrakube_workers.id
 }

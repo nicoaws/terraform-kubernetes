@@ -8,28 +8,27 @@ resource "aws_lb" "kubeapi_nlb" {
   }
 }
 
-# # resource "aws_lb_listener" "kubeapi_alb_listener" {
-# #   load_balancer_arn = "${aws_lb.kubeapi_alb.arn}"
-# #   port              = "6443"
-# #   protocol          = "HTTPS"
-# #   ssl_policy        = "ELBSecurityPolicy-2016-08"
-# #   certificate_arn   = "${aws_acm_certificate.kubeapi_acm_cert.arn}"
+resource "aws_lb_listener" "kubeapi_nlb_listener" {
+  load_balancer_arn = "${aws_lb.kubeapi_nlb.arn}"
+  port              = "6443"
+  protocol          = "TCP"
 
-# #   default_action {
-# #     type             = "forward"
-# #     target_group_arn = "${aws_lb_target_group.kube_api.arn}"
-# #   }
-# # }
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.kube_api.arn}"
+  }
+}
 
-# # resource "aws_lb_target_group" "kube_api" {
-# #   name     = "terrakube-kubeapi-target-group"
-# #   port     = 6443
-# #   protocol = "HTTPS"
-# #   vpc_id   = "${aws_vpc.terrakube_vpc.id}"
-# # }
+resource "aws_lb_target_group" "kube_api" {
+  name     = "terrakube-kubeapi-target-group"
+  port     = 6443
+  protocol = "TCP"
+  vpc_id   = "${aws_vpc.terrakube_vpc.id}"
+}
 
-# # resource "aws_lb_target_group_attachment" "kube_api_lb_attachment" {
-# #   target_group_arn = "${aws_lb_target_group.kube_api.arn}"
-# #   target_id        = "${aws_instance.kube_master_leader.id}"
-# #   port             = 6443
-# # }
+resource "aws_lb_target_group_attachment" "kube_api_lb_attachment" {
+  count = var.master_count
+  target_group_arn = aws_lb_target_group.kube_api.arn
+  target_id        = aws_instance.kube_master.*.id[count.index]
+  port             = 6443
+}

@@ -35,5 +35,5 @@ setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # Install kubelet and kubectl
-yum install -y kubelet kubectl --disableexcludes=kubernetes
+yum install -y kubelet kubectl kubeadm --disableexcludes=kubernetes
 

@@ -1,0 +1,45 @@
+- name: Render kubeadm-config
+  command: kubeadm reset --force
+  tags: reset
+  become: yes
+
+- name: Render kubeadm-config
+  template:
+    src: templates/kubeadm-config.j2
+    dest: kubeadm-config.yaml
+  when: inventory_hostname == groups["masters"][0]
+  tags: init-master
+  
+- name: Initialize the Kubernetes cluster using kubeadm
+  command: kubeadm init --config=kubeadm-config.yaml --upload-certs
+  when: inventory_hostname == groups["masters"][0]
+  args:
+    creates: /etc/kubernetes/admin.conf
+  become: yes
+  tags: init-master
+
+- name: Allow ec2-user to use kubectl
+  script: scripts/kubectl-config.sh
+  when: inventory_hostname == groups["masters"][0]
+
+- name: Install calico pod network
+  become: false
+  command: kubectl create -f https://docs.projectcalico.org/v3.8/getting-started/kubernetes/installation/hosted/calico.yaml
+  when: inventory_hostname == groups["masters"][0]
+
+- name: Generate join command
+  command: kubeadm token create --print-join-command
+  register: join_command
+  when: inventory_hostname == groups["masters"][0] 
+  tags: join
+
+- name: Copy join command to local file
+  local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="{{ role_path }}/scripts/join-command.sh"
+  when: inventory_hostname == groups["masters"][0] 
+  tags: join
+
+- name: Other controllers join cluster
+  script: "{{ role_path }}/scripts/join-command.sh"
+  when: inventory_hostname != groups["masters"][0]
+  become: yes
+  tags: join
