@@ -2,3 +2,4 @@
 *.out
 *.tfstate*
 pki/
+env.sh
