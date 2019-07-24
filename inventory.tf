@@ -14,7 +14,8 @@ ${instance.public_dns} private_ip=${instance.private_ip}
 [all:vars]
 ansible_user=ec2-user
 ansible_ssh_private_key_file=${var.private_key_path}
-
+kubeapi_nlb_dns_name=${aws_lb.kubeapi_nlb.dns_name}
+kubeapi_nlb_port=${var.kubeapi_port}
 EOT
   filename = "ansible/inventory"
 }

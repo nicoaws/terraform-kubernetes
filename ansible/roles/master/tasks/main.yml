@@ -1,22 +1,38 @@
-- name: Render kubeadm-config
+- name: Reset kubeadm
   command: kubeadm reset --force
-  tags: reset
   become: yes
+  tags: 
+    - reset
 
 - name: Render kubeadm-config
   template:
     src: templates/kubeadm-config.j2
     dest: kubeadm-config.yaml
   when: inventory_hostname == groups["masters"][0]
-  tags: init-master
+  tags:
+    - init
   
 - name: Initialize the Kubernetes cluster using kubeadm
   command: kubeadm init --config=kubeadm-config.yaml --upload-certs
   when: inventory_hostname == groups["masters"][0]
+  register: kubeadm_init_output
   args:
     creates: /etc/kubernetes/admin.conf
   become: yes
-  tags: init-master
+  tags:
+    - init
+
+- name: Copy kubeadm controller join command
+  local_action: command "echo {{ kubeadm_init_output.stdout }} | sed -n '65,68p' -  > {{ role_path }}/scripts//controller-join-command.sh"
+  when: inventory_hostname == groups["masters"][0] 
+  tags:
+    - init
+
+- name: Copy kubeadm worker join command
+  local_action: copy content="{{ kubeadm_init_output.stdout_lines[75:76] }}" dest="{{ role_path }}/scripts/worker-join-command.sh"
+  when: inventory_hostname == groups["masters"][0] 
+  tags:
+    - init
 
 - name: Allow ec2-user to use kubectl
   script: scripts/kubectl-config.sh
@@ -31,15 +47,12 @@
   command: kubeadm token create --print-join-command
   register: join_command
   when: inventory_hostname == groups["masters"][0] 
-  tags: join
 
 - name: Copy join command to local file
   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="{{ role_path }}/scripts/join-command.sh"
   when: inventory_hostname == groups["masters"][0] 
-  tags: join
 
 - name: Other controllers join cluster
   script: "{{ role_path }}/scripts/join-command.sh"
   when: inventory_hostname != groups["masters"][0]
   become: yes
-  tags: join

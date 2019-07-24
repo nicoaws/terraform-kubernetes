@@ -53,7 +53,7 @@ variable "worker_count" {
   default = 5
 }
 
-variable "kubeadm_token" {
+variable "kubeapi_port" {
   type = "string"
-  default = ""
+  default = 6443
 }
