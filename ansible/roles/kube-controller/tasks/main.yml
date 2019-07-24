@@ -1,0 +1,81 @@
+- name: Load certificates
+  unarchive:
+    src: "{{ playbook_dir }}/pki/controller-pki.tgz"
+    dest: /home/ec2-user
+  when: inventory_hostname != groups.masters[0]
+
+- name: Template kubeconfig generator scripts
+  template:
+    src: "templates/{{item}}.kubeconfig-generator.sh"
+    dest: "{{item}}.kubeconfig-generator.sh"
+  with_items:
+    - kube-scheduler
+    - kube-controller-manager
+    - kube-proxy
+    - admin
+
+
+- name: Execute kubeconfig generator scripts
+  shell: "bash {{item}}.kubeconfig-generator.sh"
+  with_items:
+    - kube-scheduler
+    - kube-controller-manager
+    - kube-proxy
+    - admin
+  become: yes
+
+- name: Generate a random encryption secret
+  shell: head -c 32 /dev/urandom | base64
+  register: secret
+  delegate_to: "{{ groups.masters[0] }}"
+
+- name: Generate the encryption config file
+  template:
+    src: templates/encryption-config.yml
+    dest: /var/lib/kubernetes/encryption-config.yml
+  become: yes
+
+- name: Download and install the kubernetes controller binaries
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/v1.15.1/bin/linux/amd64/{{item}}" 
+    dest: "/usr/local/bin/{{item}}"
+    mode: 0700
+  become: yes
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Generate services configuration
+  template:
+    src: "templates/{{item}}.service"
+    dest: "/etc/systemd/system/{{item}}.service"
+  with_items:
+    - kube-apiserver
+    - kube-scheduler
+    - kube-controller-manager
+  become: yes
+  tags:
+    - services
+
+- name: Generate the Kubernetes scheduler configuration
+  template:
+    src: templates/kube-scheduler.yaml
+    dest: /etc/kubernetes/config/kube-scheduler.yaml
+  become: yes
+  tags:
+    - services
+
+- name: Enable and start Kubernetes services
+  systemd:
+    name: "{{item}}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+  become: yes
+  tags:
+    - services

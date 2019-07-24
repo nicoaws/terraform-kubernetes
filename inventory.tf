@@ -1,6 +1,8 @@
 resource "local_file" "ansible_inventory_file" {
 
   content = <<-EOT
+[ca]
+${aws_instance.kube_master.0.public_dns} private_ip=${aws_instance.kube_master.0.private_ip}
 [masters]
 %{ for instance in aws_instance.kube_master ~}
 ${instance.public_dns} private_ip=${instance.private_ip}

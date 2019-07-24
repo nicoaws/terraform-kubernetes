@@ -1,14 +1,4 @@
 
 
-# - name: Configure node private ip
-#   lineinfile:
-#     path: /etc/default/kubelet
-#     line: KUBELET_EXTRA_ARGS=--node-ip={{ private_ip }}
-#     create: yes
-#   become: yes
 
-# - name: Restart kubelet
-#   service:
-#     name: kubelet
-#     daemon_reload: yes
-#     state: restarted
+

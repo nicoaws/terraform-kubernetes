@@ -57,3 +57,8 @@ variable "kubeapi_port" {
   type = "string"
   default = 6443
 }
+
+# variable "kubernetes_version" {
+#   type = "string"
+#   default = 1.15.1
+# }

@@ -1,0 +1,40 @@
+- name: Load certificates
+  unarchive:
+    src: "{{ playbook_dir }}/pki/controller-pki.tgz"
+    dest: /home/ec2-user
+  when: inventory_hostname != groups.masters[0]
+  
+- name: Download and unpack etcd
+  unarchive:
+    src: https://github.com/coreos/etcd/releases/download/v3.3.9/etcd-v3.3.9-linux-amd64.tar.gz
+    dest: /tmp
+    remote_src: yes
+  tags:
+    - etcd
+
+- name: Install etcd binaries and configure folder
+  shell: |
+    mv /tmp/etcd-v3.3.9-linux-amd64/etcd* /usr/local/bin/
+    mkdir -p /etc/etcd /var/lib/etcd
+    cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+  become: yes
+  tags:
+    - etcd
+
+- name: Generate etcd configuration
+  template:
+    src: templates/etcd.service
+    dest: /etc/systemd/system/etcd.service
+  become: yes
+  tags:
+    - etcd
+
+- name: Enable and start etcd service
+  systemd:
+    name: etcd
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  become: yes
+  tags:
+    - etcd
