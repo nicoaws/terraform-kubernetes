@@ -60,10 +60,10 @@ variable "kubeapi_port" {
 
 variable "kubernetes_version" {
   type = "string"
-  default = 1.15.1
+  default = "1.15.1"
 }
 
 variable "go_version" {
   type = "string"
-  default = 1.12.7
+  default = "1.12.7"
 }

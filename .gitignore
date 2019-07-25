@@ -1,5 +1,6 @@
 .terraform/
 *.out
 *.tfstate*
-pki/
+cluster.state
+scripts/
 env.sh
