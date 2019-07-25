@@ -1,33 +1,40 @@
-- name: Load certificates
+- name: Create the /etc/etcd and /var/lib/etcd folders
+  file:
+    path: "{{item}}"
+    state: directory
+  become: yes
+  with_items:
+    - /etc/etcd/
+    - /var/lib/etcd
+  tags: etcd
+
+- name: Extract PKI data
   unarchive:
-    src: "{{ playbook_dir }}/pki/controller-pki.tgz"
-    dest: /home/ec2-user
-  when: inventory_hostname != groups.masters[0]
+    src: "{{ playbook_dir }}/pki/etcd-pki.tgz"
+    dest: /etc/etcd
+    list_files: yes
+  become: yes
+  tags: etcd
   
 - name: Download and unpack etcd
   unarchive:
     src: https://github.com/coreos/etcd/releases/download/v3.3.9/etcd-v3.3.9-linux-amd64.tar.gz
     dest: /tmp
     remote_src: yes
-  tags:
-    - etcd
+  tags: etcd
 
-- name: Install etcd binaries and configure folder
+- name: Install etcd binaries
   shell: |
     mv /tmp/etcd-v3.3.9-linux-amd64/etcd* /usr/local/bin/
-    mkdir -p /etc/etcd /var/lib/etcd
-    cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
   become: yes
-  tags:
-    - etcd
+  tags: etcd
 
 - name: Generate etcd configuration
   template:
     src: templates/etcd.service
     dest: /etc/systemd/system/etcd.service
   become: yes
-  tags:
-    - etcd
+  tags: etcd
 
 - name: Enable and start etcd service
   systemd:
@@ -36,5 +43,4 @@
     enabled: yes
     daemon_reload: yes
   become: yes
-  tags:
-    - etcd
+  tags: etcd

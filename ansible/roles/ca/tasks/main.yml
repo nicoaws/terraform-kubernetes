@@ -11,25 +11,35 @@
     - kube-proxy-csr
     - kube-scheduler-csr
     - service-account-csr
-    - kubernetes-csr    
+    - kubernetes-csr
+  tags: ca
 
 - name: Template cfssl configuration files for kubelet client certificates
   template:
     src: templates/instance-csr.json
     dest: "{{ item }}-csr.json"
   with_items: "{{ groups.workers }}"
+  tags: ca
 
 - name: Generate CA
   shell: cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+  tags: ca
 
 - name: Generate static certs
-  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes {{item}}-csr.json | cfssljson -bare {{item}}
+  shell: >
+    cfssl gencert 
+    -ca=ca.pem
+    -ca-key=ca-key.pem
+    -config=ca-config.json
+    -hostname={% for host in groups.masters %}{{hostvars[host].private_ip}},{%endfor%},{{ kubeapi_nlb_dns_name}},{{KUBERNETES_SAN}}
+    -profile=kubernetes {{item}}-csr.json | cfssljson -bare {{item}}
   with_items:
     - admin
     - kube-controller-manager
     - kube-proxy
     - kube-scheduler
     - service-account
+  tags: ca
 
 - name: Generate KubeAPI certs
   shell: >
@@ -37,8 +47,9 @@
     -ca=ca.pem 
     -ca-key=ca-key.pem 
     -config=ca-config.json 
-    -hostname={% for host in groups.masters %}{{hostvars[host].private_ip}},{%endfor%},{{ kubeapi_nlb_dns_name}},127.0.0.1,kubernetes.default 
+    -hostname={% for host in groups.masters %}{{hostvars[host].private_ip}},{%endfor%},{{ kubeapi_nlb_dns_name}},{{KUBERNETES_SAN}}
     -profile=kubernetes kubernetes-csr.json | cfssljson -bare kubernetes
+  tags: ca
 
 - name: Generate Kubelet certs
   shell: >
@@ -49,12 +60,24 @@
     -hostname={{item}},{{kubeapi_nlb_dns_name}},{{ hostvars[item].private_ip}}
     -profile=kubernetes {{item}}-csr.json | cfssljson -bare {{item}}
   with_items: "{{ groups.workers }}"
+  tags: ca
 
-- name: Package controller data
+- name: Package etcd PKI data
+  archive: 
+    path: 
+      - ca.pem
+      - kubernetes-key.pem
+      - kubernetes.pem
+    dest: etcd-pki.tgz
+  tags: ca
+
+- name: Package Kubernetes control plane PKI data
   archive: 
     path: 
       - ca.pem
       - ca-key.pem
+      - admin.pem
+      - admin-key.pem
       - kubernetes-key.pem
       - kubernetes.pem
       - kube-scheduler-key.pem
@@ -62,6 +85,7 @@
       - service-account-key.pem
       - service-account.pem
     dest: controller-pki.tgz
+  tags: ca
 
 - name: Package worker data
   archive: 
@@ -70,8 +94,7 @@
       - "*.compute.amazonaws.com-key.pem"
       - "*.compute.amazonaws.com.pem"
     dest: worker-pki.tgz
-  tags:
-    - fetchcerts
+  tags: ca
 
 - name: Fetch worker and controller packages
   fetch:
@@ -81,6 +104,6 @@
   with_items:
     - worker-pki.tgz
     - controller-pki.tgz
-  tags:
-    - fetchcerts
+    - etcd-pki.tgz
+  tags: ca
 

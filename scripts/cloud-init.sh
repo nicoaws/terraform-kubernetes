@@ -13,7 +13,7 @@ yum remove \
 yum update -y
 yum install -y amazon-linux-extras yum-utils device-mapper-persistent-data lvm2
 amazon-linux-extras install -y docker
-amazon-linux-extras install -y nginx
+amazon-linux-extras install -y nginx1.12
 systemctl enable docker
 systemctl start docker
 usermod -aG docker ec2-user
@@ -36,11 +36,11 @@ setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
 # Install kubelet and kubectl
-yum install -y kubelet kubectl kubeadm --disableexcludes=kubernetes
+yum install -y kubelet-${kubernetes_version}-0.x86_64 kubectl-${kubernetes_version}-0.x86_64 --disableexcludes=kubernetes
 
 # Install go
-wget -q https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.12.7.linux-amd64.tar.gz
+wget -q https://dl.google.com/go/go${go_version}.linux-amd64.tar.gz
+tar -C /usr/local -xzf go${go_version}.linux-amd64.tar.gz
 
 cat <<EOF > /etc/profile.d/gopath.sh
 PATH=$PATH:/usr/local/go/bin

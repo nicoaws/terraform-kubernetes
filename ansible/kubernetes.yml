@@ -1,11 +1,11 @@
 ---
-# - hosts: ca
-#   roles:
-#     - ca
+- hosts: ca
+  roles:
+    - ca
 
 - hosts: masters
   roles:
-    # - etcd
+    - etcd
     - kube-controller
 
 # - hosts: workers
