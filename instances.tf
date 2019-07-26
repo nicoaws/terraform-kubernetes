@@ -8,6 +8,9 @@ resource "aws_instance" "kube_master" {
   user_data = data.template_cloudinit_config.cloud_init_config.rendered
   associate_public_ip_address = true
   source_dest_check = false
+  provisioner "remote-exec" {
+    inline = [ "sudo hostnamectl set-hostname terrakube-master-${count.index}" ]
+  }
   tags = {
     Name = "terrakube-master-${count.index}"
   }
@@ -24,6 +27,9 @@ resource "aws_instance" "kube_worker" {
   user_data = data.template_cloudinit_config.cloud_init_config.rendered
   associate_public_ip_address = true
   source_dest_check = false
+  provisioner "remote-exec" {
+    inline = [ "sudo hostnamectl set-hostname terrakube-worker-${count.index}" ] 
+  }
   tags = {
     Name = "terrakube-worker-${count.index}"
   }

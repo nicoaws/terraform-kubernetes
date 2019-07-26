@@ -11,7 +11,7 @@ yum remove \
     docker-engine
 
 yum update -y
-yum install -y amazon-linux-extras yum-utils device-mapper-persistent-data lvm2
+yum install -y amazon-linux-extras yum-utils device-mapper-persistent-data lvm2 tc
 amazon-linux-extras install -y docker
 systemctl enable docker
 systemctl start docker
