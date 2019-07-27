@@ -1,0 +1,4 @@
+MASTERS=( %{ for instance in jsondecode(MASTERS) ~} ${instance.public_dns} %{ endfor ~})
+WORKERS=( %{ for instance in jsondecode(WORKERS) ~} ${instance.public_dns} %{ endfor ~})
+NLB_DNS_NAME=${NLB_DNS_NAME}
+NLB_PORT=${NLB_PORT}

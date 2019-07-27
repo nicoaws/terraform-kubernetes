@@ -16,11 +16,11 @@ data "template_cloudinit_config" "cloud_init_config" {
   }
 }
 
-data "template_file" "kubernetes_bootstrap" {
-  template = file("templates/kubernetes-bootstrap.sh")
+data "template_file" "hosts_data" {
+  template = file("templates/hosts_data.tmpl")
   vars = { 
-    masters = jsonencode(aws_instance.kube_master.*)
-    workers = jsonencode(aws_instance.kube_worker.*)
+    MASTERS = jsonencode(aws_instance.kube_master.*)
+    WORKERS = jsonencode(aws_instance.kube_worker.*)
     NLB_DNS_NAME = aws_lb.kubeapi_nlb.dns_name
     NLB_PORT = var.kubeapi_port
   }
