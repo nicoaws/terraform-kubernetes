@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source `dirname "$0"`/hosts.txt
+source `dirname "$0"`/hosts
 
 ALL_NODES=("${MASTERS[@]}" "${WORKERS[@]}")
 PRIVATE_KEY=~/.ssh/id_rsa
@@ -49,26 +49,26 @@ if [[ ! $* == *skip-bundle-upload=True* ]]; then
 #=========================================================#
 #               Generate Kubeadm Config
 #=========================================================#
-cat > `dirname "$0"`/remote-bundle/kubeadm-config.yml <<EOT 
+cat > `dirname "$0"`/scripts/kubeadm-config.yml <<EOT 
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
 kubernetesVersion: stable
 controlPlaneEndpoint: "$NLB_DNS_NAME:$NLB_PORT"
 EOT
-tar -zcf /tmp/remote-bundle.tar.gz `dirname "$0"`/remote-bundle/*
+tar -zcf /tmp/scripts.tar.gz `dirname "$0"`/scripts/*
 
 #=========================================================#
-#        Copy and extract remote-bundle on all nodes
+#        Copy and extract scripts on all nodes
 #=========================================================#
 separator "Copy remote bundle on all nodes"
 for instance in ${ALL_NODES[@]} ; do
   echo -n "$instance..."
-  copycommand /tmp/remote-bundle.tar.gz $instance >> $LOGFILE 2>&1
+  copycommand /tmp/scripts.tar.gz $instance >> $LOGFILE 2>&1
   closure $?
 done
 
 separator "Extract remote bundle on all nodes"
-command="tar -zxf remote-bundle.tar.gz --strip-components=2"
+command="tar -zxf scripts.tar.gz --strip-components=2"
 for instance in ${ALL_NODES[@]} ; do
   echo -n "$instance..."
   sshcommand "$command" $instance
@@ -113,8 +113,8 @@ fi
 separator "Initialise cluster (if required)"
 command="/home/ec2-user/init-cluster.sh --reset-cluster=$RESET_CLUSTER"
 sshcommand "$command" ${MASTERS[0]} > /tmp/commands.txt 2>&1
-control_plane_join_command="$(head -n1 /tmp/commands.txt) > node.log 2>&1"
-workers_join_command="$(tail -n1 /tmp/commands.txt) > node.log 2>&1"
+control_plane_join_command="$(head -n1 /tmp/commands.txt | grep control-plane) > node.log 2>&1"
+workers_join_command="$(tail -n1 /tmp/commands.txt | grep join | grep -v control-plane) > node.log 2>&1"
 closure $?
 
 #=========================================================#
@@ -153,5 +153,6 @@ done
 #=========================================================#
 separator "Configure local user for kubectl"
 command="sudo cat /etc/kubernetes/admin.conf"
-sshcommand "$command" ${MASTERS[0]} > $HOME/.kube/config
+mkdir -p $HOME/.kube
+sshcommand "$command" ${MASTERS[0]} > $HOME/.kube/terrakube-config
 closure $?

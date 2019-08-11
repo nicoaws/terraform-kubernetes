@@ -1,4 +1,0 @@
-apiVersion: kubeadm.k8s.io/v1beta2
-kind: ClusterConfiguration
-kubernetesVersion: stable
-controlPlaneEndpoint: "tf-lb-20190801072516339000000001-d9c6cb4973571da0.elb.eu-west-1.amazonaws.com:6443"
