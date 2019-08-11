@@ -2,5 +2,5 @@
 *.out
 *.tfstate*
 cluster.state
-scripts/
+scripts/remote-bundle
 env.sh
