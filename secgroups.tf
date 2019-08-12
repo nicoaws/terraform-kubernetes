@@ -124,15 +124,6 @@ resource "aws_security_group_rule" "allow_workers_all_tcp_from_alb" {
   security_group_id = aws_security_group.terrakube_workers.id
 }
 
-resource "aws_security_group_rule" "temp_allow_workers_in" {
-  type = "ingress"
-  from_port = 30030
-  to_port = 30036
-  protocol = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
-  ipv6_cidr_blocks = ["::/0"]
-  security_group_id = aws_security_group.terrakube_workers.id
-}
 
 #=============================================================================#
 #                 SERVICES ALB SECURITY GROUP ROLES
