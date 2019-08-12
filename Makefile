@@ -28,6 +28,3 @@ reset-controllers:
 
 dashboard:
 	kubectl apply -f kubernetes/apps/dashboard/
-
-traefik:
-	kubectl apply -f kubernetes/apps/traefik/
