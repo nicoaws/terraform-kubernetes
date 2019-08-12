@@ -10,8 +10,10 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      name: web
+      name: data
+      nodePort: 30035
     - protocol: TCP
       port: 8080
       name: admin
+      nodePort: 30036
   type: NodePort

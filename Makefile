@@ -12,14 +12,22 @@ plan:
 apply: 
 	terraform apply $(PLAN_FILE)
 
-destroy:
+clean:
 	terraform destroy --force
+	rm -rf .kube
+	rm -rf kubernetes/hosts
 
 deploy-cluster:
 	bash kubernetes/kubernetes-bootstrap.sh
 
+reset-cluster:
+	bash kubernetes/kubernetes-bootstrap.sh --reset-cluster=True
+
+reset-controllers:
+	bash kubernetes/kubernetes-bootstrap.sh --reset-controllers=True
+
 dashboard:
-	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta1/aio/deploy/recommended.yaml
+	kubectl apply -f kubernetes/apps/dashboard/
 
 traefik:
 	kubectl apply -f kubernetes/apps/traefik/

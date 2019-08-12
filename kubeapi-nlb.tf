@@ -1,9 +1,10 @@
 resource "aws_lb" "kubeapi_nlb" {
   internal           = false
   load_balancer_type = "network"
+  name               = "terrakube-kubeapi-nlb"
   subnets            = aws_subnet.terrakube_public_subnets.*.id
   tags = {
-    name = "terrakube-kubeapi-nlb"
+    Name = "terrakube-kubeapi-nlb"
   }
 }
 

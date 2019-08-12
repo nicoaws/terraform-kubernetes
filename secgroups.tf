@@ -14,6 +14,17 @@ resource "aws_security_group" "terrakube_workers"{
   }
 }
 
+resource "aws_security_group" "services_alb_sg"{
+  name = "terrakube-services-alb-sg"
+  vpc_id = aws_vpc.terrakube_vpc.id
+   tags = {
+    Name = "terrakube-services-alb-sg"
+  }
+}
+
+#=============================================================================#
+#                    MASTERS SECURITY GROUP ROLES
+#=============================================================================#
 resource "aws_security_group_rule" "allow_masters_all_from_self" {
   type = "ingress"
   from_port = 0
@@ -62,6 +73,9 @@ resource "aws_security_group_rule" "allow_masters_all_from_workers" {
   security_group_id = aws_security_group.terrakube_masters.id
 }
 
+#=============================================================================#
+#                    WORKERS SECURITY GROUP ROLES
+#=============================================================================#
 resource "aws_security_group_rule" "allow_workers_ssh_from_everywhere" {
   type = "ingress"
   from_port = 22
@@ -100,18 +114,35 @@ resource "aws_security_group_rule" "allow_workers_out_all_tcp" {
   security_group_id = aws_security_group.terrakube_workers.id
 }
 
-resource "aws_security_group" "services_alb_sg"{
-  name = "terrakube-services-alb-sg"
-  vpc_id = aws_vpc.terrakube_vpc.id
-   tags = {
-    Name = "terrakube-services-alb-sg"
-  }
+
+resource "aws_security_group_rule" "allow_workers_all_tcp_from_alb" {
+  type = "ingress"
+  from_port = 0
+  to_port = 65535
+  protocol = "tcp"
+  source_security_group_id = aws_security_group.services_alb_sg.id
+  security_group_id = aws_security_group.terrakube_workers.id
 }
+
+resource "aws_security_group_rule" "temp_allow_workers_in" {
+  type = "ingress"
+  from_port = 30030
+  to_port = 30036
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
+  security_group_id = aws_security_group.terrakube_workers.id
+}
+
+#=============================================================================#
+#                 SERVICES ALB SECURITY GROUP ROLES
+#=============================================================================#
+
 
 resource "aws_security_group_rule" "allow_8443_from_everywhere" {
   type = "ingress"
-  from_port = 8443
-  to_port = 8443
+  from_port = 443
+  to_port = 443
   protocol = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
   ipv6_cidr_blocks = ["::/0"]
@@ -125,13 +156,4 @@ resource "aws_security_group_rule" "allow_all_tcp_to_workers" {
   protocol = "tcp"
   source_security_group_id = aws_security_group.terrakube_workers.id
   security_group_id = aws_security_group.services_alb_sg.id
-}
-
-resource "aws_security_group_rule" "allow_workers_all_tcp_from_alb" {
-  type = "ingress"
-  from_port = 0
-  to_port = 65535
-  protocol = "tcp"
-  source_security_group_id = aws_security_group.services_alb_sg.id
-  security_group_id = aws_security_group.terrakube_workers.id
 }

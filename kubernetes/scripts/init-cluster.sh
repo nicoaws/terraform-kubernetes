@@ -8,6 +8,11 @@ if [[ ! -f cluster.state ]]; then
   cat cluster.state >> node.log
 fi
 
+# Configure sysctl
+sudo echo "net.bridge.bridge-nf-call-iptables = 1" >>  /etc/sysctl.conf 
+sudo sysctl -p >> node.log 2>&1
+
+
 # Configure Kubectl
 ./kubectl-config.sh >> node.log 2>&1
 # Install Calico

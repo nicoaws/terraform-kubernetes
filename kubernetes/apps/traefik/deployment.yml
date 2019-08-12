@@ -19,6 +19,10 @@ spec:
     spec:
       serviceAccountName: traefik-ingress-controller
       terminationGracePeriodSeconds: 60
+      volumes:
+      - name: traefik-ingress-configmap
+        configMap:
+          name: traefik-ingress-configmap
       containers:
       - image: traefik
         name: traefik-ingress-lb
@@ -31,4 +35,7 @@ spec:
         - --api
         - --kubernetes
         - --logLevel=INFO
----
+        volumeMounts:
+          - mountPath: "/config"
+            name: "traefik-ingress-configmap"
+

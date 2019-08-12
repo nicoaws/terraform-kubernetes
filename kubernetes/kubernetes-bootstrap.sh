@@ -113,8 +113,8 @@ fi
 separator "Initialise cluster (if required)"
 command="/home/ec2-user/init-cluster.sh --reset-cluster=$RESET_CLUSTER"
 sshcommand "$command" ${MASTERS[0]} > /tmp/commands.txt 2>&1
-control_plane_join_command="$(head -n1 /tmp/commands.txt | grep control-plane) > node.log 2>&1"
-workers_join_command="$(tail -n1 /tmp/commands.txt | grep join | grep -v control-plane) > node.log 2>&1"
+control_plane_join_command="$(grep control-plane /tmp/commands.txt) > node.log 2>&1"
+workers_join_command="$(grep join /tmp/commands.txt | grep -v control-plane) > node.log 2>&1"
 closure $?
 
 #=========================================================#
@@ -153,6 +153,6 @@ done
 #=========================================================#
 separator "Configure local user for kubectl"
 command="sudo cat /etc/kubernetes/admin.conf"
-mkdir -p $HOME/.kube
-sshcommand "$command" ${MASTERS[0]} > $HOME/.kube/terrakube-config
+mkdir -p .kube
+sshcommand "$command" ${MASTERS[0]} > .kube/terrakube-config
 closure $?
