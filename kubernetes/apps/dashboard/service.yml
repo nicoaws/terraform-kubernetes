@@ -29,15 +29,15 @@ spec:
     k8s-app: kubernetes-metrics-scraper
 
 ---
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: kube-dashboard-creds
-#   namespace: kubernetes-dashboard
-# type: Opaque
-# data:
-#   username: YWRtaW4=
-#   password: MWYyZDFlMmU2N2Rm
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kube-dashboard-creds
+  namespace: kubernetes-dashboard
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: MWYyZDFlMmU2N2Rm
 ---
 
 
@@ -49,10 +49,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
-    # ingress.kubernetes.io/auth-type: basic
-    # ingress.kubernetes.io/auth-secret: kube-dashboard-creds
-    # ingress.kubernetes.io/auth-remove-header: true
-    # ingress.kubernetes.io/auth-realm: "Authentication Required"
 spec:
   rules:
   - http:

@@ -26,5 +26,11 @@ reset-cluster:
 reset-controllers:
 	bash kubernetes/kubernetes-bootstrap.sh --reset-controllers=True
 
+traefik:
+	# kubectl delete -f kubernetes/apps/traefik/
+	kubectl apply -f kubernetes/apps/traefik/
+
 dashboard:
+	# kubectl delete -f kubernetes/apps/dashboard/
 	kubectl apply -f kubernetes/apps/dashboard/
+	kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
