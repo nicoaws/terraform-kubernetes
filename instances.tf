@@ -30,33 +30,3 @@ resource "aws_instance" "kube_worker" {
     Name = "terrakube-worker-${count.index}"
   }
 }
-
-resource "null_resource" "kube_master_set_hostnames" {
-  count = var.master_count
-  triggers = {
-    kube_master_ids = aws_instance.kube_master[count.index].id
-  }
-  connection {
-    host = aws_instance.kube_master[count.index].public_dns
-    user = "ec2-user"
-    private_key = file(var.private_key_path)
-  }
-  provisioner "remote-exec" {
-    inline = [ "sudo hostnamectl set-hostname terrakube-master-${count.index}" ] 
-  }
-}
-
-resource "null_resource" "kube_worker_set_hostnames" {
-  count = var.worker_count
-  triggers = {
-    kube_worker_id = aws_instance.kube_worker[count.index].id
-  }
-  connection {
-    host = aws_instance.kube_worker[count.index].public_dns
-    user = "ec2-user"
-    private_key = file(var.private_key_path)
-  }
-  provisioner "remote-exec" {
-    inline = [ "sudo hostnamectl set-hostname terrakube-worker-${count.index}" ] 
-  }
-}
