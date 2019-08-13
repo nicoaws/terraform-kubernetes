@@ -6,3 +6,4 @@ env.sh
 kubernetes-bootstrap.log
 kubernetes/hosts
 kubernetes/scripts/kubeadm-config.yml
+.kube/terrakube-config
