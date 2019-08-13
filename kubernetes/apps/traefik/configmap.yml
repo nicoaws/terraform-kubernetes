@@ -14,8 +14,8 @@ data:
     [entryPoints]
       [entryPoints.http]
       address = ":80"
-      [entryPoints.http.auth.basic]
-      users = ["admin:$apr1$QTXDEH6J$BFLcyp1eoMl.WU2XvdrA9."]
+      # [entryPoints.http.auth.basic]
+      # users = ["admin:$apr1$QTXDEH6J$BFLcyp1eoMl.WU2XvdrA9."]
       # [entryPoints.http.redirect]
       # entryPoint = "https"
       # # Enable basic authentication
