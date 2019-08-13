@@ -1,9 +1,13 @@
 ---
-kind: DaemonSet
+kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
   name: nginx-test
 spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-test
   template:
     metadata:
       labels:
@@ -11,10 +15,33 @@ spec:
     spec:      
       containers:
         - name: nginx
-          image: dustnic82/nginx-test:latest
+          # image: dustnic82/nginx-test:latest
+          image: nginxdemos/hello
           ports:
             - name: http
               containerPort: 80
+---
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: nginx-probe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-probe
+  template:
+    metadata:
+      labels:
+        app: nginx-probe
+    spec:      
+      containers:
+        - name: nginx
+          image: dustnic82/nginx-test:latest
+          ports:
+            - name: http
+              containerPort: 88
 
 ---
 
@@ -23,11 +50,29 @@ kind: Service
 metadata:
   name: nginx-test-service
 spec:
-  type: NodePort
   ports:
     - protocol: TCP
       name: http
       port: 80
-      nodePort: 30037
   selector:
     app: nginx-test
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik-test-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+    # traefik.ingress.kubernetes.io/auth-type: "basic"
+    # traefik.ingress.kubernetes.io/auth-secret: "mysecret"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /test
+        backend:
+          serviceName: nginx-test-service
+          servicePort: 80

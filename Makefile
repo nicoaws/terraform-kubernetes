@@ -14,7 +14,7 @@ apply:
 
 clean:
 	terraform destroy --force
-	rm -rf .kube
+	rm -rf .kube/
 	rm -rf kubernetes/hosts
 
 deploy-cluster:

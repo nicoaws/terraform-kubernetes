@@ -25,22 +25,15 @@ resource "aws_security_group" "services_alb_sg"{
 #=============================================================================#
 #                    MASTERS SECURITY GROUP ROLES
 #=============================================================================#
+
+# Ingress rules
+
 resource "aws_security_group_rule" "allow_masters_all_from_self" {
   type = "ingress"
   from_port = 0
   to_port = 0
   protocol = -1
   self = true
-  security_group_id = aws_security_group.terrakube_masters.id
-}
-
-resource "aws_security_group_rule" "allow_masters_out_all_tcp" {
-  type = "egress"
-  from_port = 0
-  to_port = 65535
-  protocol = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
-  ipv6_cidr_blocks = ["::/0"]
   security_group_id = aws_security_group.terrakube_masters.id
 }
 
@@ -73,9 +66,22 @@ resource "aws_security_group_rule" "allow_masters_all_from_workers" {
   security_group_id = aws_security_group.terrakube_masters.id
 }
 
+resource "aws_security_group_rule" "allow_masters_out_all_tcp" {
+  type = "egress"
+  from_port = 0
+  to_port = 65535
+  protocol = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
+  security_group_id = aws_security_group.terrakube_masters.id
+}
+
 #=============================================================================#
 #                    WORKERS SECURITY GROUP ROLES
 #=============================================================================#
+
+# Ingress rules
+
 resource "aws_security_group_rule" "allow_workers_ssh_from_everywhere" {
   type = "ingress"
   from_port = 22
@@ -104,6 +110,17 @@ resource "aws_security_group_rule" "allow_workers_all_from_masters" {
   security_group_id = aws_security_group.terrakube_workers.id
 }
 
+resource "aws_security_group_rule" "allow_workers_all_tcp_from_alb" {
+  type = "ingress"
+  from_port = 0
+  to_port = 65535
+  protocol = "tcp"
+  source_security_group_id = aws_security_group.services_alb_sg.id
+  security_group_id = aws_security_group.terrakube_workers.id
+}
+
+# Egress rules
+
 resource "aws_security_group_rule" "allow_workers_out_all_tcp" {
   type = "egress"
   from_port = 0
@@ -114,13 +131,12 @@ resource "aws_security_group_rule" "allow_workers_out_all_tcp" {
   security_group_id = aws_security_group.terrakube_workers.id
 }
 
-
-resource "aws_security_group_rule" "allow_workers_all_tcp_from_alb" {
-  type = "ingress"
+resource "aws_security_group_rule" "allow_workers_out_ipip_to_self" {
+  type = "egress"
   from_port = 0
-  to_port = 65535
-  protocol = "tcp"
-  source_security_group_id = aws_security_group.services_alb_sg.id
+  to_port = 0
+  protocol = 4
+  self = true
   security_group_id = aws_security_group.terrakube_workers.id
 }
 
